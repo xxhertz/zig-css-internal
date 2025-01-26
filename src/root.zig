@@ -4,6 +4,7 @@
 const std = @import("std");
 const win32 = @import("zigwin32");
 const interface = @import("get_interface.zig");
+const trampoline = @import("trampoline.zig");
 const win = std.os.windows;
 
 pub export fn DllMain(hInst: win.HINSTANCE, dwReason: win.DWORD, _: win.LPVOID) win.BOOL {
@@ -42,21 +43,22 @@ fn main_thread(hInst: ?*anyopaque) callconv(std.builtin.CallingConvention.winapi
 
     load();
 
+    // time for trampoline hook
     // CHLClient
-    const g_pClient = interface.get_interface(*usize, "client.dll", "VClient017") orelse return unload(hInst);
-    std.log.debug("g_pClient: {X}", .{g_pClient.*});
+    // const g_pClient = interface.get_interface(*usize, "client.dll", "VClient017") orelse return unload(hInst);
+    // std.log.debug("g_pClient: {X}", .{g_pClient.*});
 
-    const hud_process_input: usize = @as(*usize, @ptrFromInt(g_pClient.* + 40)).*; // equivalent of indexing by 10 (4 bytes per func)
-    std.log.debug("hud_process_input: {X}", .{hud_process_input});
+    // const hud_process_input: usize = @as(*usize, @ptrFromInt(g_pClient.* + 40)).*; // equivalent of indexing by 10 (4 bytes per func)
+    // std.log.debug("hud_process_input: {X}", .{hud_process_input});
 
     // zig does not like misaligned bytes so i got a bit lazy i should fix this tmr tbh
-    const bytes: *const [4]u8 = @ptrFromInt(hud_process_input + 5);
+    // const bytes: *const [4]u8 = @ptrFromInt(hud_process_input + 5);
     // also i dont think these need to be u32 but it worked last time i ran it, i believe usize and u32 should function the same but i really don't care enough to try right
-    const g_pClientMode: u32 = @as(**u32, @ptrFromInt(@as(u32, @bitCast(bytes.*)))).*.*;
-    std.log.debug("g_pClientMode: {X}", .{g_pClientMode});
+    // const g_pClientMode: u32 = @as(**u32, @ptrFromInt(@as(u32, @bitCast(bytes.*)))).*.*;
+    // std.log.debug("g_pClientMode: {X}", .{g_pClientMode});
 
-    const create_move: u32 = @as(*usize, @ptrFromInt(g_pClientMode + 21 * 4)).*;
-    std.log.debug("CreateMove: {X}", .{create_move});
+    // const create_move: u32 = @as(*usize, @ptrFromInt(g_pClientMode + 21 * 4)).*;
+    // std.log.debug("CreateMove: {X}", .{create_move});
 
     return unload(hInst);
 }
