@@ -18,7 +18,7 @@ pub const c_usercmd = struct {
     hasbeenpredicted: bool, //3C;
 };
 
-pub const userButtons = enum(u8) {
+pub const userButtons = enum(u32) {
     IN_ATTACK = (1 << 0),
     IN_JUMP = (1 << 1),
     IN_DUCK = (1 << 2),
@@ -44,7 +44,7 @@ pub const userButtons = enum(u8) {
     IN_BULLRUSH = (1 << 22),
 };
 
-const flags = enum(u8) {
+const flags = enum(u32) {
     FL_ONGROUND = (1 << 0), // At rest / on the ground
     FL_DUCKING = (1 << 1), // Player flag -- Player is fully crouched
     FL_WATERJUMP = (1 << 2), // player jumping out of water
@@ -79,11 +79,11 @@ const flags = enum(u8) {
     FL_UNBLOCKABLE_BY_PLAYER = (1 << 30), // pusher that can't be blocked by the player
 };
 
-pub const create_move_t = fn (_: *anyopaque, _: f32, cmd: *c_usercmd) callconv(.C) bool;
-pub var create_move_o: create_move_t = null;
+pub const create_move_t = *const fn (_: *anyopaque, _: f32, cmd: *c_usercmd) callconv(.C) bool;
+pub var create_move_o: ?create_move_t = null;
 
 const std = @import("std");
 pub fn hk_create_move(this_ptr: *anyopaque, frametime: f32, cmd: *c_usercmd) callconv(.C) bool {
     std.log.debug("I LOVE CREATEMOVE :D", .{});
-    return create_move_t(this_ptr, frametime, cmd);
+    return create_move_o.?(this_ptr, frametime, cmd);
 }
