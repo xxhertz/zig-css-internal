@@ -12,15 +12,15 @@ const mem = win32.system.memory;
 pub fn detour(source: usize, destination: usize, len: comptime_int) bool {
     if (len < 5) return false;
 
-    var current_protection: mem.PAGE_PROTECTION_FLAGS = .{};
-    _ = mem.VirtualProtect(@as(*anyopaque, @ptrFromInt(source)), len, .{ .PAGE_EXECUTE_READWRITE = 1 }, &current_protection);
+    var old_protection: mem.PAGE_PROTECTION_FLAGS = .{};
+    _ = mem.VirtualProtect(@as(*anyopaque, @ptrFromInt(source)), len, .{ .PAGE_EXECUTE_READWRITE = 1 }, &old_protection);
 
     const relative_addr: isize = @as(isize, @intCast(destination)) - @as(isize, @intCast(source)) - 5;
 
     @as(*u8, @ptrFromInt(source)).* = 0xE9;
     @as(*align(1) isize, @ptrFromInt(source + 1)).* = relative_addr;
 
-    _ = mem.VirtualProtect(@as(*anyopaque, @ptrFromInt(source)), len, current_protection, &current_protection);
+    _ = mem.VirtualProtect(@as(*anyopaque, @ptrFromInt(source)), len, old_protection, &old_protection);
 
     return true;
 }
@@ -43,4 +43,14 @@ pub fn trampoline_hook(source: usize, destination: usize, len: comptime_int) usi
 
     _ = detour(source, destination, len);
     return gateway;
+}
+
+pub fn virtual_hook(vtable: [*]align(1) usize, index: u32, hook_ptr: usize) usize {
+    const original_ptr: usize = vtable[index];
+    var old_protection: mem.PAGE_PROTECTION_FLAGS = .{};
+    _ = mem.VirtualProtect(&vtable[index], @sizeOf(usize), .{ .PAGE_READWRITE = 1 }, &old_protection);
+    vtable[index] = hook_ptr;
+    _ = mem.VirtualProtect(&vtable[index], @sizeOf(usize), old_protection, &old_protection);
+
+    return original_ptr;
 }

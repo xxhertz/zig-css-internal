@@ -52,25 +52,13 @@ fn main_thread(hInst: ?*anyopaque) callconv(std.builtin.CallingConvention.winapi
     const hud_process_input = g_pClient[10];
     std.log.debug("hud_process_input: {X}", .{hud_process_input});
 
-    // // ... lol
+    // ... lol
     const g_pClientMode: [*]align(1) usize = @as(*align(1) *align(1) *align(1) [*]align(1) usize, @ptrFromInt(hud_process_input + 5)).*.*.*;
 
     std.log.debug("g_pClientMode: {*}", .{g_pClientMode});
     std.log.debug("CreateMove: {X}", .{g_pClientMode[21]});
-    // const create_move: usize = @as(*usize, @ptrFromInt(g_pClientMode + 21 * 4)).*;
-    // std.log.debug("CreateMove: {X}", .{create_move});
 
-    // createmove:
-    // 55                push    ebp
-    // 8B EC             mov     ebp, esp
-    // E8 88 E7 FB FF    call    getlocalplayer
-
-    // hooks.create_move_o = @alignCast(@as(hooks.create_move_t, @ptrFromInt(trampoline.trampoline_hook(
-    //     create_move,
-    //     @intFromPtr(&hooks.hk_create_move),
-    //     8,
-    // ))));
-    // hooks.create_move_o = @ptrCast(@as(*const anyopaque, @ptrFromInt(trampoline.trampoline_hook(create_move, @intFromPtr(&hooks.hk_create_move), 8))));
-
+    hooks.create_move_o = @ptrFromInt(trampoline.virtual_hook(g_pClientMode, 21, @intFromPtr(&hooks.hk_create_move)));
+    
     return unload(hInst);
 }

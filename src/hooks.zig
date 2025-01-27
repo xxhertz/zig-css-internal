@@ -79,11 +79,14 @@ const flags = enum(u32) {
     FL_UNBLOCKABLE_BY_PLAYER = (1 << 30), // pusher that can't be blocked by the player
 };
 
-pub const create_move_t = *const fn (_: *anyopaque, _: f32, cmd: *c_usercmd) callconv(.C) bool;
+pub const create_move_t = *const fn (_: f32, cmd: *c_usercmd) callconv(.Stdcall) bool;
 pub var create_move_o: ?create_move_t = null;
 
 const std = @import("std");
-pub fn hk_create_move(this_ptr: *anyopaque, frametime: f32, cmd: *c_usercmd) callconv(.C) bool {
-    std.log.debug("I LOVE CREATEMOVE :D", .{});
-    return create_move_o.?(this_ptr, frametime, cmd);
+pub fn hk_create_move(frametime: f32, cmd: *c_usercmd) callconv(.Stdcall) bool {
+    std.log.debug("I LOVE CREATEMOVE :D\nhk: {X}\norig: {X}", .{ @intFromPtr(&hk_create_move), @intFromPtr(create_move_o) });
+
+    std.log.debug("buttons: {x}", .{cmd.buttons});
+    // std.debug.print("hk_create_move: {X}\ncreate_move_o: {?X}", .{ @intFromPtr(&hk_create_move), @intFromPtr(&create_move_o) });
+    return create_move_o.?(frametime, cmd);
 }
