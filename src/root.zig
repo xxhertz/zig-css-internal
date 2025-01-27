@@ -46,30 +46,30 @@ fn main_thread(hInst: ?*anyopaque) callconv(std.builtin.CallingConvention.winapi
 
     // time for trampoline hook
     // CHLClient
-    const g_pClient = interface.get_interface(*usize, "client.dll", "VClient017") orelse return unload(hInst);
-    std.log.debug("g_pClient: {X}", .{g_pClient.*});
+    const g_pClient = interface.get_interface(*[*]usize, "client.dll", "VClient017").?.*;
+    std.log.debug("g_pClient: {*}", .{g_pClient});
 
-    const hud_process_input: usize = @as(*usize, @ptrFromInt(g_pClient.* + 40)).*; // equivalent of indexing by 10 (4 bytes per func)
+    const hud_process_input = g_pClient[10];
     std.log.debug("hud_process_input: {X}", .{hud_process_input});
 
-    // zig does not like misaligned bytes so i got a bit lazy i should fix this tmr tbh
-    const bytes: *const [4]u8 = @ptrFromInt(hud_process_input + 5);
-    // also i dont think these need to be u32 but it worked last time i ran it, i believe usize and u32 should function the same but i really don't care enough to try right
-    const g_pClientMode: u32 = @as(**u32, @ptrFromInt(@as(u32, @bitCast(bytes.*)))).*.*;
-    std.log.debug("g_pClientMode: {X}", .{g_pClientMode});
+    // // ... lol
+    const g_pClientMode: [*]align(1) usize = @as(*align(1) *align(1) *align(1) [*]align(1) usize, @ptrFromInt(hud_process_input + 5)).*.*.*;
 
-    const create_move: u32 = @as(*usize, @ptrFromInt(g_pClientMode + 21 * 4)).*;
-    std.log.debug("CreateMove: {X}", .{create_move});
+    std.log.debug("g_pClientMode: {*}", .{g_pClientMode});
+    std.log.debug("CreateMove: {X}", .{g_pClientMode[21]});
+    // const create_move: usize = @as(*usize, @ptrFromInt(g_pClientMode + 21 * 4)).*;
+    // std.log.debug("CreateMove: {X}", .{create_move});
 
     // createmove:
     // 55                push    ebp
     // 8B EC             mov     ebp, esp
     // E8 88 E7 FB FF    call    getlocalplayer
-    hooks.create_move_o = @alignCast(@as(hooks.create_move_t, @ptrFromInt(trampoline.trampoline_hook(
-        create_move,
-        @intFromPtr(&hooks.hk_create_move),
-        8,
-    ))));
+
+    // hooks.create_move_o = @alignCast(@as(hooks.create_move_t, @ptrFromInt(trampoline.trampoline_hook(
+    //     create_move,
+    //     @intFromPtr(&hooks.hk_create_move),
+    //     8,
+    // ))));
     // hooks.create_move_o = @ptrCast(@as(*const anyopaque, @ptrFromInt(trampoline.trampoline_hook(create_move, @intFromPtr(&hooks.hk_create_move), 8))));
 
     return unload(hInst);
