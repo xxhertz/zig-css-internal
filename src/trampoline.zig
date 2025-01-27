@@ -45,8 +45,36 @@ pub fn trampoline_hook(source: usize, destination: usize, len: comptime_int) usi
     return gateway;
 }
 
+// i dont care to implement this for trampoline hooks since i'm not using them in this project anyways
+const hook_state = struct {
+    original_ptr: usize,
+    vtable: [*]align(1) usize,
+    index: u32,
+};
+
+pub const global_hooks_states = struct {
+    var list: std.ArrayList(hook_state) = undefined;
+    var allocator: std.mem.Allocator = undefined;
+
+    pub fn init(alloc: std.mem.Allocator) void {
+        global_hooks_states.list = std.ArrayList(hook_state).init(alloc);
+        global_hooks_states.allocator = alloc;
+    }
+
+    pub fn deinit() void {
+        for (global_hooks_states.list.items) |hook_data| {
+            var old_protection: mem.PAGE_PROTECTION_FLAGS = .{};
+            _ = mem.VirtualProtect(&hook_data.vtable[hook_data.index], @sizeOf(usize), .{ .PAGE_READWRITE = 1 }, &old_protection);
+            hook_data.vtable[hook_data.index] = hook_data.original_ptr;
+            _ = mem.VirtualProtect(&hook_data.vtable[hook_data.index], @sizeOf(usize), old_protection, &old_protection);
+        }
+    }
+};
+
 pub fn virtual_hook(vtable: [*]align(1) usize, index: u32, hook_ptr: usize) usize {
     const original_ptr: usize = vtable[index];
+    const state: hook_state = .{ .index = index, .original_ptr = original_ptr, .vtable = vtable };
+    global_hooks_states.list.append(state) catch @panic("error: either you forgot to initialize global_hooks_states, or some other error with the allocator occured");
     var old_protection: mem.PAGE_PROTECTION_FLAGS = .{};
     _ = mem.VirtualProtect(&vtable[index], @sizeOf(usize), .{ .PAGE_READWRITE = 1 }, &old_protection);
     vtable[index] = hook_ptr;

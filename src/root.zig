@@ -27,6 +27,7 @@ pub export fn DllMain(hInst: win.HINSTANCE, dwReason: win.DWORD, _: win.LPVOID) 
 
 fn unload(hInst: ?*anyopaque) u32 {
     _ = std.io.getStdIn().reader().readByte() catch unreachable;
+    trampoline.global_hooks_states.deinit();
     _ = win32.system.console.FreeConsole();
     const hInstCast: ?win.HINSTANCE = @ptrCast(hInst);
     win32.system.library_loader.FreeLibraryAndExitThread(hInstCast, 0);
@@ -34,15 +35,14 @@ fn unload(hInst: ?*anyopaque) u32 {
     return 0;
 }
 
-fn load() void {
-    _ = win32.system.console.AllocConsole();
-}
-
-fn main_thread(hInst: ?*anyopaque) callconv(std.builtin.CallingConvention.winapi) u32 {
+fn main_thread(hInst: ?*anyopaque) callconv(.winapi) u32 {
     if (hInst == null)
         unreachable;
 
-    load();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+
+    _ = win32.system.console.AllocConsole();
 
     // time for trampoline hook
     // CHLClient
@@ -58,7 +58,7 @@ fn main_thread(hInst: ?*anyopaque) callconv(std.builtin.CallingConvention.winapi
     std.log.debug("g_pClientMode: {*}", .{g_pClientMode});
     std.log.debug("CreateMove: {X}", .{g_pClientMode[21]});
 
+    trampoline.global_hooks_states.init(allocator);
     hooks.create_move_o = @ptrFromInt(trampoline.virtual_hook(g_pClientMode, 21, @intFromPtr(&hooks.hk_create_move)));
-    
     return unload(hInst);
 }
