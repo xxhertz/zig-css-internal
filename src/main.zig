@@ -1,28 +1,22 @@
-//! By convention, main.zig is where your main function lives in the case that
-//! you are building an executable. If you are making a library, the convention
-//! is to delete this file and start with root.zig instead.
-const std = @import("std");
 const win32 = @import("zigwin32");
+const std = @import("std");
+const trampoline = @import("trampoline.zig");
+const x = win32.ui.windows_and_messaging;
 
-pub fn doAnotherThing() void {
-    std.log.debug("hello :D", .{});
+var o_messagebox: *const fn () c_int = undefined;
+pub fn msgbox_hook() c_int {
+    _ = x.MessageBoxA(null, "haha get hooked", "hooked", x.MB_OK);
+    std.log.debug("omsgb from hook: {x}", .{o_messagebox});
+    return o_messagebox();
 }
 
-pub fn doAThing(_: ?*anyopaque) callconv(std.builtin.CallingConvention.winapi) u32 {
-    while (true) {
-        doAnotherThing();
-
-        win32.system.threading.Sleep(500);
-    }
-
-    return 0;
+pub fn messagebox() c_int {
+    _ = x.MessageBoxA(null, "test", "test 2", x.MB_OK);
+    return 1;
 }
 
 pub fn main() void {
-    _ = win32.system.threading.CreateThread(null, 0, doAThing, null, win32.system.threading.THREAD_CREATE_RUN_IMMEDIATELY, null);
-    win32.system.threading.Sleep(1000);
-    std.log.debug("loading library", .{});
-    _ = win32.system.library_loader.LoadLibraryA("zigcssbt.dll");
-
-    win32.system.threading.Sleep(1500);
+    o_messagebox = @ptrFromInt(trampoline.trampoline_hook(@intFromPtr(&messagebox), @intFromPtr(&msgbox_hook), 6));
+    std.log.debug("omsgb: {x}", .{o_messagebox});
+    std.log.debug("res: {d}", .{messagebox()});
 }

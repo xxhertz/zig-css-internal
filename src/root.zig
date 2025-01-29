@@ -1,11 +1,10 @@
-//! By convention, root.zig is the root source file when making a library. If
-//! you are making an executable, the convention is to delete this file and
-//! start with main.zig instead.
 const std = @import("std");
 const win32 = @import("zigwin32");
 const interface = @import("get_interface.zig");
 const trampoline = @import("trampoline.zig");
+const structs = @import("structs.zig");
 const hooks = @import("hooks.zig");
+const globals = @import("globals.zig");
 const win = std.os.windows;
 
 pub export fn DllMain(hInst: win.HINSTANCE, dwReason: win.DWORD, _: win.LPVOID) win.BOOL {
@@ -56,7 +55,12 @@ fn main_thread(hInst: ?*anyopaque) callconv(.winapi) u32 {
     const g_pClientMode: [*]align(1) usize = @as(*align(1) *align(1) *align(1) [*]align(1) usize, @ptrFromInt(hud_process_input + 5)).*.*.*;
 
     std.log.debug("g_pClientMode: {*}", .{g_pClientMode});
-    std.log.debug("CreateMove: {X}", .{g_pClientMode[21]});
+    const create_move = g_pClientMode[21];
+    std.log.debug("CreateMove: {X}", .{create_move});
+
+    globals.get_local_player = @ptrFromInt(@as(usize, @intCast(@as(isize, @intCast(create_move + 8)) + @as(*isize, @ptrFromInt(create_move + 4)).*)));
+
+    std.log.debug("get_local_player: {X}", .{globals.get_local_player});
 
     trampoline.global_hooks_states.init(allocator);
     hooks.create_move_o = @ptrFromInt(trampoline.virtual_hook(g_pClientMode, 21, @intFromPtr(&hooks.hk_create_move)));
