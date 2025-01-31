@@ -93,7 +93,7 @@ pub const player = extern struct {
     _4: [0x1CA]u8,
     m_iFlags: flags, // checked
     _5: [0x228]u8,
-    m_iBoneMatrix: usize, // bonematrix: 0x578
+    m_iBoneMatrix: usize, // bonematrix: 0x578 unchecked
 
     // m_iObserverMode: c_int,
     // m_hObserverTarget: u32,
