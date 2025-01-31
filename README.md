@@ -1,0 +1,1 @@
+# No protections against anticheats, use at your own risk!
