@@ -6,7 +6,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const lib = b.addSharedLibrary(.{
-        .name = "zigcssbhop",
+        .name = "zig-css-internal",
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
@@ -16,5 +16,4 @@ pub fn build(b: *std.Build) void {
 
     const zigwin32_dep = b.dependency("zigwin32", .{});
     lib.root_module.addImport("zigwin32", zigwin32_dep.module("zigwin32"));
-
 }

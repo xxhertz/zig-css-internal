@@ -1,6 +1,6 @@
 .{
-    .name = "zigcssbhop",
-    .version = "0.0.0",
+    .name = "zig-css-internal",
+    .version = "1.0.0",
     .dependencies = .{
         .zigwin32 = .{
             .url = "git+https://github.com/marlersoft/zigwin32?ref=master#01793fe2abe5e6dc6f78b0d41170dc8d01584f1a",
