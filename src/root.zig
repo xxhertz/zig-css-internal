@@ -59,7 +59,7 @@ fn main_thread(hInst: ?*anyopaque) callconv(.winapi) u32 {
     std.log.debug("g_pClientMode->CreateMove: {X}", .{create_move});
 
     globals.get_local_player = @ptrFromInt(@as(usize, @intCast(@as(isize, @intCast(create_move + 8)) + @as(*isize, @ptrFromInt(create_move + 4)).*)));
-    std.log.debug("C_BasePlayer-> GetLocalPlayer: {X}", .{globals.get_local_player});
+    std.log.debug("C_BasePlayer->GetLocalPlayer: {X}", .{globals.get_local_player});
 
     hooks.create_move_o = @ptrCast(hooking.virtual_hook(g_pClientMode, 21, &hooks.hk_create_move));
 
