@@ -1,10 +1,14 @@
 .{
     .name = "zig-css-internal",
-    .version = "1.0.0",
+    .version = "0.0.0",
     .dependencies = .{
         .zigwin32 = .{
             .url = "git+https://github.com/marlersoft/zigwin32?ref=master#01793fe2abe5e6dc6f78b0d41170dc8d01584f1a",
             .hash = "12205790582b13f84eab3cd4d54c7c8f2c3fda2ac9e1d3f2ac847d76c096bfbac825",
+        },
+        .vmthook = .{
+            .url = "git+https://github.com/xxhertz/zig-vmt-hook?ref=main#683e8165d482c8f27317df59238d91478887cecf",
+            .hash = "122098ac95a8dd73f20860e63a834e2b0f5402c95149981ed8b0d066d696d5eecb8d",
         },
     },
     .paths = .{

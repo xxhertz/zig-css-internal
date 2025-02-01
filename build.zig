@@ -16,4 +16,6 @@ pub fn build(b: *std.Build) void {
 
     const zigwin32_dep = b.dependency("zigwin32", .{});
     lib.root_module.addImport("zigwin32", zigwin32_dep.module("zigwin32"));
+    const vmthook_dep = b.dependency("vmthook", .{});
+    lib.root_module.addImport("vmthook", vmthook_dep.module("hooking"));
 }
